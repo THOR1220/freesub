@@ -29,6 +29,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:#0b1526;border:1px solid #263b58;border-radius:12px}
 .item small{display:block;color:var(--muted);margin-top:4px}
 .item-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.searchbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+.searchbar .input{min-width:220px}
+.count{font-size:13px;color:var(--muted);white-space:nowrap}
 .empty{color:var(--muted);padding:18px;text-align:center;border:1px dashed #40516a;border-radius:12px}
 .hint{font-size:13px;line-height:1.6;color:var(--muted)}
 .steps{display:grid;gap:12px;margin:16px 0 20px;padding:0;list-style:none;counter-reset:step}
@@ -79,7 +82,12 @@ footer{margin-top:45px;border-top:1px solid var(--line);padding-top:20px;color:v
 <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
 <h2 style="margin:0">My hostnames</h2><button class="secondary" id="export" type="button">Export list</button>
 </div>
+<div class="searchbar">
+<input class="input" id="search" type="search" placeholder="Search hostnames or notes..." aria-label="Search hostnames or notes">
+<span class="count" id="count">0 hostnames</span>
+</div>
 <div id="items" class="list"></div>
+<p id="copyMessage" class="hint" role="status" aria-live="polite"></p>
 </section>
 
 <section class="panel">
@@ -97,8 +105,15 @@ const $=id=>document.getElementById(id);
 function save(){localStorage.setItem(KEY,JSON.stringify(rows));render()}
 function render(){
  const root=$("items");root.innerHTML="";
- if(!rows.length){root.innerHTML='<div class="empty">No hostnames saved yet. Register one on FreeDNS, then add it above.</div>';return}
- rows.forEach((r,i)=>{
+ const query=$("search").value.trim().toLowerCase();
+ const filtered=rows.filter(r=>(r.host+" "+(r.purpose||"")).toLowerCase().includes(query));
+ $("count").textContent=rows.length+" hostname"+(rows.length===1?"":"s")+" saved";
+ if(!filtered.length){
+  root.innerHTML='<div class="empty">'+(rows.length?'No matching hostnames. Try another search.':'No hostnames saved yet. Register one on FreeDNS, then add it above.')+'</div>';
+  return;
+ }
+ filtered.forEach(r=>{
+  const index=rows.indexOf(r);
   const div=document.createElement("div");div.className="item";
   const left=document.createElement("div");
   const name=document.createElement("div");name.className="domain";name.textContent=r.host;
@@ -107,14 +122,29 @@ function render(){
   const actions=document.createElement("div");actions.className="item-actions";
   const badge=document.createElement("span");badge.className="status"+(r.status==="registered"?"":" pending");
   badge.textContent=r.status==="registered"?"Registered on FreeDNS":"Not registered yet";
+  const copy=document.createElement("button");copy.className="secondary";copy.type="button";copy.textContent="Copy";
+  copy.onclick=async()=>{
+   try{
+    await navigator.clipboard.writeText(r.host);
+    $("copyMessage").textContent="Copied "+r.host;
+   }catch{
+    $("copyMessage").textContent="Copy was blocked by this browser. Select the hostname and copy it manually.";
+   }
+  };
+  const edit=document.createElement("button");edit.className="secondary";edit.type="button";edit.textContent="Edit note";
+  edit.onclick=()=>{
+   const next=prompt("Edit the note for "+r.host+":",r.purpose||"");
+   if(next!==null){rows[index].purpose=next.trim();save()}
+  };
   const toggle=document.createElement("button");toggle.className="secondary";toggle.type="button";
   toggle.textContent=r.status==="registered"?"Mark pending":"Mark registered";
-  toggle.onclick=()=>{rows[i].status=r.status==="registered"?"pending":"registered";save()};
+  toggle.onclick=()=>{rows[index].status=r.status==="registered"?"pending":"registered";save()};
   const del=document.createElement("button");del.className="secondary";del.type="button";del.textContent="Remove";
-  del.onclick=()=>{if(confirm("Remove "+r.host+" from this dashboard? This will not delete it from FreeDNS.")){rows.splice(i,1);save()}};
-  actions.append(badge,toggle,del);div.append(left,actions);root.append(div);
+  del.onclick=()=>{if(confirm("Remove "+r.host+" from this dashboard? This will not delete it from FreeDNS.")){rows.splice(index,1);save()}};
+  actions.append(badge,copy,edit,toggle,del);div.append(left,actions);root.append(div);
  });
 }
+$("search").addEventListener("input",render);
 $("addForm").addEventListener("submit",e=>{
  e.preventDefault();
  const host=$("host").value.trim().toLowerCase();
