@@ -7,8 +7,10 @@
 <style>
 :root{color-scheme:dark;--bg:#080e1c;--panel:#111d31;--line:#263b58;--mint:#7ce4c5;--muted:#a8b7cc}
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at 15% 0%,#173a50,transparent 40%),var(--bg);color:#f4f8ff;font:16px system-ui,sans-serif}
-.wrap{max-width:980px;margin:auto;padding:28px 20px}
+body{margin:0;background:var(--bg);color:#f4f8ff;font:16px system-ui,sans-serif}
+#wallpaper{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none}
+.wallpaper-shade{position:fixed;inset:0;background:linear-gradient(120deg,rgba(5,10,25,.78),rgba(5,10,25,.60));z-index:1;pointer-events:none}
+.wrap{position:relative;z-index:2;max-width:980px;margin:auto;padding:28px 20px}
 .top{display:flex;justify-content:space-between;align-items:center}
 .logo{font-size:25px;font-weight:800;letter-spacing:-1px}.logo span{color:var(--mint)}
 .tag{color:var(--mint);font-size:12px;border:1px solid #376c66;border-radius:30px;padding:7px 11px}
