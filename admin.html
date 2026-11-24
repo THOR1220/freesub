@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FreeSub Admin</title>
+<style>
+:root{color-scheme:dark;--bg:#080e1c;--panel:rgba(17,29,49,.92);--line:#263b58;--mint:#7ce4c5;--muted:#a8b7cc;--blue:#75baff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:#f4f8ff;font:16px system-ui,sans-serif}
+#wallpaper{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+.shade{position:fixed;inset:0;background:linear-gradient(120deg,rgba(5,10,25,.82),rgba(5,10,25,.72));z-index:-1}
+.wrap{max-width:1100px;margin:auto;padding:24px 18px 50px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-size:26px;font-weight:850;letter-spacing:-1px}.logo span{color:var(--mint)}
+.pill{font-size:12px;color:var(--mint);border:1px solid #376c66;border-radius:30px;padding:7px 11px}
+.hero{padding:38px 0 22px}.eyebrow{color:var(--mint);font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase}
+h1{font-size:clamp(34px,6vw,54px);line-height:1.05;letter-spacing:-2px;margin:10px 0}
+.muted,.hint{color:var(--muted)}.hint{font-size:13px;line-height:1.6}
+.panel{background:var(--panel);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:18px;padding:22px;margin:16px 0}
+.form{display:grid;gap:12px;max-width:480px}
+input{width:100%;background:#091323;border:1px solid #3a506e;border-radius:10px;padding:13px;color:white;font:inherit}
+button{background:var(--mint);color:#08241d;border:0;border-radius:10px;padding:12px 16px;font-weight:800;cursor:pointer}
+button.secondary{background:#263a56;color:#f2f7ff;border:1px solid #415875}
+button:disabled{opacity:.55;cursor:not-allowed}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.tile{background:#0b1526;border:1px solid var(--line);border-radius:14px;padding:18px}
+.tile strong{display:block;font-size:18px;margin:5px 0}
+.notice{border-left:3px solid var(--mint);padding:10px 13px;background:#0b1b2b;border-radius:0 9px 9px 0}
+.error{color:#ffb4b4}.good{color:var(--mint)}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{text-align:left;padding:11px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+th{color:var(--muted);font-size:13px}
+#app,#loginPanel{display:none}
+footer{margin-top:35px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:12px}
+@media(max-width:600px){.panel{padding:17px}th,td{padding:8px;font-size:13px}}
+</style>
+</head>
+<body>
+<img id="wallpaper" src="thor-god-of-thunder.jpg" alt="" aria-hidden="true">
+<div class="shade"></div>
+<main class="wrap">
+<header><div class="logo">free<span>sub.</span></div><div class="pill">ADMIN CONTROL PANEL</div></header>
+
+<section class="hero">
+ <div class="eyebrow">Secure administration</div>
+ <h1>FreeSub<br>Command Center.</h1>
+ <p class="muted">Administrator access for the FreeSub platform.</p>
+</section>
+
+<section class="panel" id="setupPanel">
+ <h2>Connect FreeSub to Supabase</h2>
+ <p class="hint">Enter your Supabase Project URL and Publishable key below. These are browser-safe project settings; never enter a secret or service-role key here.</p>
+ <div class="form">
+  <label>Project URL<input id="projectUrl" type="url" placeholder="https://your-project.supabase.co" autocomplete="url"></label>
+  <label>Publishable key<input id="publishableKey" type="text" placeholder="sb_publishable_..." autocomplete="off"></label>
+  <button id="saveConfig" type="button">Save connection settings</button>
+ </div>
+ <p class="hint">These settings are saved only in this browser. You can replace them later.</p>
+ <p id="setupMessage" class="hint" role="status"></p>
+</section>
+
+<section class="panel" id="loginPanel">
+ <h2>Administrator login</h2>
+ <p class="hint">Sign in with the Supabase Auth email and password for the THOR account.</p>
+ <form class="form" id="loginForm">
+  <label>Email<input id="email" type="email" required autocomplete="username"></label>
+  <label>Password<input id="password" type="password" required autocomplete="current-password"></label>
+  <button id="loginButton" type="submit">Sign in</button>
+ </form>
+ <p id="loginMessage" class="hint" role="status"></p>
+</section>
+
+<section id="app">
+ <section class="panel">
+  <div class="row">
+   <div><div class="eyebrow">Authenticated administrator</div><h2 style="margin:7px 0">Welcome, <span id="adminName">THOR</span></h2><p class="hint">Your account has passed the profile role check.</p></div>
+   <button class="secondary" id="logoutButton" type="button">Sign out</button>
+  </div>
+ </section>
+ <section class="grid">
+  <div class="tile"><div class="eyebrow">Accounts</div><strong>User directory</strong><span class="hint">View profile records permitted by database policies.</span></div>
+  <div class="tile"><div class="eyebrow">Messaging</div><strong>Private & community</strong><span class="hint">Messaging controls will be connected after their security rules are verified.</span></div>
+  <div class="tile"><div class="eyebrow">Storage</div><strong>File management</strong><span class="hint">Storage usage and cleanup tools are not connected yet.</span></div>
+ </section>
+ <section class="panel">
+  <div class="row"><h2 style="margin:0">Registered profiles</h2><button class="secondary" id="refreshUsers" type="button">Refresh</button></div>
+  <p class="hint">This reads only the profiles table. If Row Level Security blocks the query, the page will show the error; do not disable RLS to make it work.</p>
+  <div id="usersMessage" class="hint" role="status"></div>
+  <div style="overflow-x:auto"><table><thead><tr><th>Username</th><th>Role</th></tr></thead><tbody id="usersBody"><tr><td colspan="2">Loading…</td></tr></tbody></table></div>
+ </section>
+ <section class="panel">
+  <h2>Security status</h2>
+  <p class="hint notice">The dashboard checks your signed-in user's role in public.profiles. This front-end check is not a replacement for Row Level Security. Every admin-only database operation must also be protected by database policies or a trusted server-side function.</p>
+  <p class="hint">Creating Auth users, assigning roles, deleting accounts, and managing private files must be done through a trusted server-side process—not with a secret key in this page.</p>
+ </section>
+</section>
+
+<footer>FreeSub · Thor theme · Admin interface foundation. Keep Supabase secret/service-role keys out of browser code.</footer>
+</main>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const $ = id => document.getElementById(id);
+const CONFIG_KEY = "freesub-admin-public-config-v1";
+let supabase = null;
+
+function show(id, visible){ $(id).style.display = visible ? "block" : "none"; }
+function message(id, text, kind=""){ $(id).textContent=text; $(id).className="hint "+kind; }
+
+function loadConfig(){
+  try { return JSON.parse(localStorage.getItem(CONFIG_KEY) || "null"); }
+  catch { return null; }
+}
+function connect(url,key){
+  if(!url || !key) throw new Error("Enter both the Project URL and Publishable key.");
+  const parsed = new URL(url);
+  if(parsed.protocol !== "https:") throw new Error("Project URL must start with https://");
+  if(!key.startsWith("sb_publishable_") && !key.startsWith("eyJ")) {
+    throw new Error("That does not look like a Supabase publishable/anon key. Do not use a secret key.");
+  }
+  supabase = createClient(url.replace(/\/+$/,""), key);
+}
+
+async function verifyAdmin(){
+  const {data:{session},error:sessionError}=await supabase.auth.getSession();
+  if(sessionError) throw sessionError;
+  if(!session){ show("loginPanel",true); show("app",false); return; }
+  const {data:profile,error}=await supabase.from("profiles").select("username,role").eq("id",session.user.id).maybeSingle();
+  if(error) throw new Error("Could not verify your profile role: "+error.message);
+  if(!profile || String(profile.role).toLowerCase()!=="admin"){
+    await supabase.auth.signOut();
+    show("loginPanel",true); show("app",false);
+    message("loginMessage","This account does not have the admin role. Access denied.","error");
+    return;
+  }
+  $("adminName").textContent=profile.username || "THOR";
+  show("loginPanel",false); show("app",true);
+  await loadProfiles();
+}
+
+async function loadProfiles(){
+  const body=$("usersBody");
+  body.innerHTML="";
+  message("usersMessage","Loading profiles…");
+  const {data,error}=await supabase.from("profiles").select("username,role").order("username");
+  if(error){
+    body.innerHTML="<tr><td colspan='2'>Could not load profiles.</td></tr>";
+    message("usersMessage","Database policy or query error: "+error.message,"error");
+    return;
+  }
+  if(!data || data.length===0){
+    body.innerHTML="<tr><td colspan='2'>No profiles are visible to this account.</td></tr>";
+  } else {
+    for(const item of data){
+      const tr=document.createElement("tr");
+      const username=document.createElement("td");
+      const role=document.createElement("td");
+      username.textContent=item.username || "(no username)";
+      role.textContent=item.role || "(no role)";
+      tr.append(username,role);
+      body.append(tr);
+    }
+  }
+  message("usersMessage",`${data?.length || 0} profile(s) returned.`);
+}
+
+$("saveConfig").addEventListener("click", async ()=>{
+  try{
+    const url=$("projectUrl").value.trim();
+    const key=$("publishableKey").value.trim();
+    connect(url,key);
+    localStorage.setItem(CONFIG_KEY,JSON.stringify({url,key}));
+    message("setupMessage","Connection settings saved in this browser.","good");
+    show("setupPanel",false);
+    await verifyAdmin();
+  }catch(e){message("setupMessage",e.message,"error");}
+});
+
+$("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  if(!supabase){message("loginMessage","Supabase connection is not configured.","error");return;}
+  $("loginButton").disabled=true;
+  message("loginMessage","Signing in…");
+  try{
+    const {error}=await supabase.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+    if(error) throw error;
+    $("password").value="";
+    await verifyAdmin();
+  }catch(err){message("loginMessage",err.message,"error");}
+  finally{$("loginButton").disabled=false;}
+});
+
+$("logoutButton").addEventListener("click",async()=>{
+  const {error}=await supabase.auth.signOut();
+  if(error){message("usersMessage",error.message,"error");return;}
+  show("app",false);show("loginPanel",true);
+  message("loginMessage","You have signed out.","good");
+});
+$("refreshUsers").addEventListener("click",loadProfiles);
+
+const saved=loadConfig();
+if(saved){
+  $("projectUrl").value=saved.url || "";
+  $("publishableKey").value=saved.key || "";
+  try{
+    connect(saved.url,saved.key);
+    show("setupPanel",false);
+    await verifyAdmin();
+  }catch(e){
+    show("setupPanel",true);
+    message("setupMessage",e.message,"error");
+  }
+}else{
+  show("setupPanel",true);
+}
+</script>
+</body>
+</html>
