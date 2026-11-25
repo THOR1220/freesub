@@ -68,7 +68,6 @@ $("sendForm").addEventListener("submit",sendMessage);$("startPrivate").addEventL
 $("logoutButton").addEventListener("click",async()=>{if(channel)await supabase.removeChannel(channel);await supabase.auth.signOut();user=null;profile=null;activeConversation=null;show("app",false);show("loginPanel",true);say("loginMessage","You have signed out.","good");});
 const saved=loadConfig();if(saved){$("projectUrl").value=saved.url||"";$("publishableKey").value=saved.key||"";try{connect(saved.url,saved.key);show("configPanel",false);await enterApp();}catch(e){show("configPanel",true);say("configMessage",e.message,"error");}}else{show("configPanel",true);}
 </script></body></html>
-<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
