@@ -23,16 +23,16 @@ input{width:100%;background:#091323;border:1px solid #3a506e;border-radius:10px;
 button{background:var(--mint);color:#08241d;border:0;border-radius:10px;padding:12px 16px;font-weight:800;cursor:pointer}
 button.secondary{background:#263a56;color:#f2f7ff;border:1px solid #415875}
 button:disabled{opacity:.55;cursor:not-allowed}
-.textButton{background:none;color:var(--blue);padding:5px 0;text-align:left;font-weight:650}
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
 .tile{background:#0b1526;border:1px solid var(--line);border-radius:14px;padding:18px}
+.tile strong{display:block;font-size:18px;margin:5px 0}
 .notice{border-left:3px solid var(--mint);padding:10px 13px;background:#0b1b2b;border-radius:0 9px 9px 0}
 .error{color:#ffb4b4}.good{color:var(--mint)}
 table{width:100%;border-collapse:collapse;margin-top:12px}
 th,td{text-align:left;padding:11px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 th{color:var(--muted);font-size:13px}
-#app,#loginPanel,#resetPanel{display:none}
+#app,#loginPanel{display:none}
 footer{margin-top:35px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:12px}
 @media(max-width:600px){.panel{padding:17px}th,td{padding:8px;font-size:13px}}
 </style>
@@ -42,6 +42,7 @@ footer{margin-top:35px;border-top:1px solid var(--line);padding-top:16px;color:v
 <div class="shade"></div>
 <main class="wrap">
 <header><div class="logo">free<span>sub.</span></div><div class="pill">ADMIN CONTROL PANEL</div></header>
+
 <section class="hero">
  <div class="eyebrow">Secure administration</div>
  <h1>FreeSub<br>Command Center.</h1>
@@ -50,13 +51,13 @@ footer{margin-top:35px;border-top:1px solid var(--line);padding-top:16px;color:v
 
 <section class="panel" id="setupPanel">
  <h2>Connect FreeSub to Supabase</h2>
- <p class="hint">Enter your Supabase Project URL and Publishable key. These are browser-safe project settings; never enter a secret or service-role key here.</p>
+ <p class="hint">Enter your Supabase Project URL and Publishable key below. These are browser-safe project settings; never enter a secret or service-role key here.</p>
  <div class="form">
   <label>Project URL<input id="projectUrl" type="url" placeholder="https://your-project.supabase.co" autocomplete="url"></label>
   <label>Publishable key<input id="publishableKey" type="text" placeholder="sb_publishable_..." autocomplete="off"></label>
   <button id="saveConfig" type="button">Save connection settings</button>
  </div>
- <p class="hint">These settings are saved only in this browser.</p>
+ <p class="hint">These settings are saved only in this browser. You can replace them later.</p>
  <p id="setupMessage" class="hint" role="status"></p>
 </section>
 
@@ -67,20 +68,15 @@ footer{margin-top:35px;border-top:1px solid var(--line);padding-top:16px;color:v
   <label>Email<input id="email" type="email" required autocomplete="username"></label>
   <label>Password<input id="password" type="password" required autocomplete="current-password"></label>
   <button id="loginButton" type="submit">Sign in</button>
+  <button class="secondary" id="forgotButton" type="button">Forgot password?</button>
  </form>
- <button class="textButton" id="forgotButton" type="button">Forgot password?</button>
  <p id="loginMessage" class="hint" role="status"></p>
-</section>
-
-<section class="panel" id="resetPanel">
- <h2>Choose a new password</h2>
- <p class="hint">Enter a new password for your FreeSub administrator account.</p>
- <form class="form" id="resetForm">
+ <form class="form" id="resetForm" style="display:none">
+  <h3>Set a new password</h3>
   <label>New password<input id="newPassword" type="password" minlength="8" required autocomplete="new-password"></label>
   <label>Confirm new password<input id="confirmPassword" type="password" minlength="8" required autocomplete="new-password"></label>
-  <button id="resetButton" type="submit">Save new password</button>
+  <button id="resetButton" type="submit">Update password</button>
  </form>
- <p id="resetMessage" class="hint" role="status"></p>
 </section>
 
 <section id="app">
@@ -89,6 +85,17 @@ footer{margin-top:35px;border-top:1px solid var(--line);padding-top:16px;color:v
    <div><div class="eyebrow">Authenticated administrator</div><h2 style="margin:7px 0">Welcome, <span id="adminName">THOR</span></h2><p class="hint">Your account has passed the profile role check.</p></div>
    <button class="secondary" id="logoutButton" type="button">Sign out</button>
   </div>
+ </section>
+ <section class="panel" id="createUserPanel">
+  <h2>Create a FreeSub account</h2>
+  <p class="hint">Creates a Supabase Auth account and a matching profile with the ordinary user role. The password is sent securely to the server function and is not saved in this browser.</p>
+  <form class="form" id="createUserForm">
+   <label>Username<input id="newUsername" type="text" minlength="2" maxlength="32" required autocomplete="off"></label>
+   <label>Email<input id="newEmail" type="email" required autocomplete="off"></label>
+   <label>Temporary password<input id="newUserPassword" type="password" minlength="8" required autocomplete="new-password"></label>
+   <button id="createUserButton" type="submit">Create user</button>
+  </form>
+  <p id="createUserMessage" class="hint" role="status"></p>
  </section>
  <section class="grid">
   <div class="tile"><div class="eyebrow">Accounts</div><strong>User directory</strong><span class="hint">View profile records permitted by database policies.</span></div>
@@ -107,32 +114,37 @@ footer{margin-top:35px;border-top:1px solid var(--line);padding-top:16px;color:v
   <p class="hint">Creating Auth users, assigning roles, deleting accounts, and managing private files must be done through a trusted server-side process—not with a secret key in this page.</p>
  </section>
 </section>
+
 <footer>FreeSub · Thor theme · Admin interface foundation. Keep Supabase secret/service-role keys out of browser code.</footer>
 </main>
 
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
 const $ = id => document.getElementById(id);
 const CONFIG_KEY = "freesub-admin-public-config-v1";
-const ADMIN_URL = "https://thor1220.github.io/freesub/admin.html";
 let supabase = null;
-let recoveryMode = false;
 
-function show(id, visible){ $(id).style.display = visible ? "block" : "none"; }
+function show(id, visible){ $(id).style.display = visible ? (id.endsWith("Form") ? "grid" : "block") : "none"; }
 function message(id, text, kind=""){ $(id).textContent=text; $(id).className="hint "+kind; }
-function loadConfig(){ try { return JSON.parse(localStorage.getItem(CONFIG_KEY) || "null"); } catch { return null; } }
 
+function loadConfig(){
+  try { return JSON.parse(localStorage.getItem(CONFIG_KEY) || "null"); }
+  catch { return null; }
+}
 function connect(url,key){
   if(!url || !key) throw new Error("Enter both the Project URL and Publishable key.");
   const parsed = new URL(url);
   if(parsed.protocol !== "https:") throw new Error("Project URL must start with https://");
-  if(!key.startsWith("sb_publishable_") && !key.startsWith("eyJ")) throw new Error("That does not look like a Supabase publishable/anon key. Do not use a secret key.");
+  if(!key.startsWith("sb_publishable_") && !key.startsWith("eyJ")) {
+    throw new Error("That does not look like a Supabase publishable/anon key. Do not use a secret key.");
+  }
   supabase = createClient(url.replace(/\/+$/,""), key);
-  supabase.auth.onAuthStateChange((event) => {
-    if(event === "PASSWORD_RECOVERY"){
-      recoveryMode = true;
-      show("setupPanel",false); show("loginPanel",false); show("app",false); show("resetPanel",true);
-      message("resetMessage","Recovery link accepted. Choose your new password.","good");
+  supabase.auth.onAuthStateChange((event)=>{
+    if(event==="PASSWORD_RECOVERY"){
+      show("loginForm",false);
+      show("resetForm",true);
+      message("loginMessage","Choose a new password.","good");
     }
   });
 }
@@ -144,91 +156,141 @@ async function verifyAdmin(){
   const {data:profile,error}=await supabase.from("profiles").select("username,role").eq("id",session.user.id).maybeSingle();
   if(error) throw new Error("Could not verify your profile role: "+error.message);
   if(!profile || String(profile.role).toLowerCase()!=="admin"){
-    await supabase.auth.signOut(); show("loginPanel",true); show("app",false);
-    message("loginMessage","This account does not have the admin role. Access denied.","error"); return;
+    await supabase.auth.signOut();
+    show("loginPanel",true); show("app",false);
+    message("loginMessage","This account does not have the admin role. Access denied.","error");
+    return;
   }
   $("adminName").textContent=profile.username || "THOR";
-  show("loginPanel",false); show("app",true); await loadProfiles();
+  show("loginPanel",false); show("app",true);
+  await loadProfiles();
 }
+
 async function loadProfiles(){
-  const body=$("usersBody"); body.innerHTML=""; message("usersMessage","Loading profiles…");
+  const body=$("usersBody");
+  body.innerHTML="";
+  message("usersMessage","Loading profiles…");
   const {data,error}=await supabase.from("profiles").select("username,role").order("username");
-  if(error){ body.innerHTML="<tr><td colspan='2'>Could not load profiles.</td></tr>"; message("usersMessage","Database policy or query error: "+error.message,"error"); return; }
-  if(!data || data.length===0) body.innerHTML="<tr><td colspan='2'>No profiles are visible to this account.</td></tr>";
-  else for(const item of data){
-    const tr=document.createElement("tr"), username=document.createElement("td"), role=document.createElement("td");
-    username.textContent=item.username || "(no username)"; role.textContent=item.role || "(no role)";
-    tr.append(username,role); body.append(tr);
+  if(error){
+    body.innerHTML="<tr><td colspan='2'>Could not load profiles.</td></tr>";
+    message("usersMessage","Database policy or query error: "+error.message,"error");
+    return;
+  }
+  if(!data || data.length===0){
+    body.innerHTML="<tr><td colspan='2'>No profiles are visible to this account.</td></tr>";
+  } else {
+    for(const item of data){
+      const tr=document.createElement("tr");
+      const username=document.createElement("td");
+      const role=document.createElement("td");
+      username.textContent=item.username || "(no username)";
+      role.textContent=item.role || "(no role)";
+      tr.append(username,role);
+      body.append(tr);
+    }
   }
   message("usersMessage",`${data?.length || 0} profile(s) returned.`);
 }
 
-$("saveConfig").addEventListener("click",async()=>{
+$("saveConfig").addEventListener("click", async ()=>{
   try{
-    const url=$("projectUrl").value.trim(), key=$("publishableKey").value.trim();
-    connect(url,key); localStorage.setItem(CONFIG_KEY,JSON.stringify({url,key}));
-    message("setupMessage","Connection settings saved in this browser.","good"); show("setupPanel",false); await verifyAdmin();
+    const url=$("projectUrl").value.trim();
+    const key=$("publishableKey").value.trim();
+    connect(url,key);
+    localStorage.setItem(CONFIG_KEY,JSON.stringify({url,key}));
+    message("setupMessage","Connection settings saved in this browser.","good");
+    show("setupPanel",false);
+    await verifyAdmin();
   }catch(e){message("setupMessage",e.message,"error");}
 });
-$("loginForm").addEventListener("submit",async e=>{
-  e.preventDefault(); if(!supabase){message("loginMessage","Supabase connection is not configured.","error");return;}
-  $("loginButton").disabled=true; message("loginMessage","Signing in…");
-  try{
-    const {error}=await supabase.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
-    if(error) throw error; $("password").value=""; await verifyAdmin();
-  }catch(err){message("loginMessage",err.message,"error");}
-  finally{$("loginButton").disabled=false;}
-});
+
 $("forgotButton").addEventListener("click",async()=>{
   if(!supabase){message("loginMessage","Supabase connection is not configured.","error");return;}
   const email=$("email").value.trim();
-  if(!email){message("loginMessage","Enter your account email above first.","error");$("email").focus();return;}
-  $("forgotButton").disabled=true; message("loginMessage","Sending password recovery email…");
+  if(!email){message("loginMessage","Enter your Supabase Auth email first.","error");return;}
+  $("forgotButton").disabled=true;
   try{
-    const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:ADMIN_URL});
+    const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
     if(error) throw error;
-    message("loginMessage","Recovery email sent. Open the newest email and follow its link to return here.","good");
+    message("loginMessage","If the account exists, a password-reset email has been requested. Check your inbox.","good");
   }catch(err){message("loginMessage",err.message,"error");}
   finally{$("forgotButton").disabled=false;}
 });
+
+
+
 $("resetForm").addEventListener("submit",async e=>{
   e.preventDefault();
-  const p=$("newPassword").value, c=$("confirmPassword").value;
-  if(p.length<8){message("resetMessage","Use at least 8 characters.","error");return;}
-  if(p!==c){message("resetMessage","The passwords do not match.","error");return;}
-  $("resetButton").disabled=true; message("resetMessage","Updating password…");
+  const password=$("newPassword").value;
+  if(password.length<8 || password!==$("confirmPassword").value){message("loginMessage","Passwords must match and be at least 8 characters.","error");return;}
+  $("resetButton").disabled=true;
   try{
-    const {data:{session},error:sessionError}=await supabase.auth.getSession();
-    if(sessionError) throw sessionError;
-    if(!session) throw new Error("The recovery session is missing or expired. Request a fresh recovery email.");
-    const {error}=await supabase.auth.updateUser({password:p});
+    const {error}=await supabase.auth.updateUser({password});
     if(error) throw error;
-    $("newPassword").value=""; $("confirmPassword").value="";
-    recoveryMode=false; await supabase.auth.signOut();
-    show("resetPanel",false); show("loginPanel",true);
-    message("loginMessage","Password updated. Sign in using your new password.","good");
-  }catch(err){message("resetMessage",err.message,"error");}
+    await supabase.auth.signOut();
+    $("resetForm").reset(); show("resetForm",false); show("loginForm",true);
+    message("loginMessage","Password updated. Sign in with your new password.","good");
+  }catch(err){message("loginMessage",err.message,"error");}
   finally{$("resetButton").disabled=false;}
 });
+
+$("createUserForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  if(!supabase){message("createUserMessage","Supabase connection is not configured.","error");return;}
+  const username=$("newUsername").value.trim();
+  const email=$("newEmail").value.trim();
+  const password=$("newUserPassword").value;
+  if(username.length<2 || username.length>32 || password.length<8){message("createUserMessage","Use a username of 2–32 characters and a password of at least 8 characters.","error");return;}
+  $("createUserButton").disabled=true;
+  message("createUserMessage","Creating account…");
+  try{
+    const {data,error}=await supabase.functions.invoke("admin-create-user",{body:{username,email,password}});
+    if(error) throw error;
+    if(data?.error) throw new Error(data.error);
+    $("createUserForm").reset();
+    message("createUserMessage",`Account created for ${data.username}.`,"good");
+    await loadProfiles();
+  }catch(err){message("createUserMessage",err.message || "Account creation failed.","error");}
+  finally{$("createUserButton").disabled=false;}
+});
+
+$("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  if(!supabase){message("loginMessage","Supabase connection is not configured.","error");return;}
+  $("loginButton").disabled=true;
+  message("loginMessage","Signing in…");
+  try{
+    const {error}=await supabase.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+    if(error) throw error;
+    $("password").value="";
+    await verifyAdmin();
+  }catch(err){message("loginMessage",err.message,"error");}
+  finally{$("loginButton").disabled=false;}
+});
+
 $("logoutButton").addEventListener("click",async()=>{
   const {error}=await supabase.auth.signOut();
   if(error){message("usersMessage",error.message,"error");return;}
-  show("app",false);show("loginPanel",true);message("loginMessage","You have signed out.","good");
+  show("app",false);show("loginPanel",true);
+  message("loginMessage","You have signed out.","good");
 });
 $("refreshUsers").addEventListener("click",loadProfiles);
 
 const saved=loadConfig();
 if(saved){
-  $("projectUrl").value=saved.url || ""; $("publishableKey").value=saved.key || "";
+  $("projectUrl").value=saved.url || "";
+  $("publishableKey").value=saved.key || "";
   try{
-    connect(saved.url,saved.key); show("setupPanel",false);
-    const {data:{session}}=await supabase.auth.getSession();
-    if(!session && (location.hash.includes("type=recovery") || new URLSearchParams(location.search).get("type")==="recovery")){
-      recoveryMode=true; show("loginPanel",false); show("resetPanel",true);
-      message("resetMessage","Checking your recovery session…");
-    } else await verifyAdmin();
-  }catch(e){show("setupPanel",true);message("setupMessage",e.message,"error");}
-}else show("setupPanel",true);
+    connect(saved.url,saved.key);
+    show("setupPanel",false);
+    await verifyAdmin();
+  }catch(e){
+    show("setupPanel",true);
+    message("setupMessage",e.message,"error");
+  }
+}else{
+  show("setupPanel",true);
+}
 </script>
 </body>
 </html>
